@@ -119,6 +119,35 @@ namespace SemanticKernelPlayground.Plugins.PromptPlugins
         }
 
         [KernelFunction]
+        [Description("Increment the patch version and save it")]
+        public string PatchVersion()
+        {
+            try
+            {
+                var version = File.Exists(VersionFilePath)
+                    ? File.ReadAllText(VersionFilePath).Trim()
+                    : "0.0.0";
+
+                var parts = version.Split('.');
+                if (parts.Length != 3)
+                    return "Invalid version format. Expected format: X.Y.Z";
+
+                int major = int.Parse(parts[0]);
+                int minor = int.Parse(parts[1]);
+                int patch = int.Parse(parts[2]) + 1;
+
+                var newVersion = $"{major}.{minor}.{patch}";
+                File.WriteAllText(VersionFilePath, newVersion);
+
+                return $"Version patched to: {newVersion}";
+            }
+            catch (Exception ex)
+            {
+                return $"Failed to patch version: {ex.Message}";
+            }
+        }
+
+        [KernelFunction]
         [Description("Commit all staged changes with the given message")]
         public string CommitChanges([Description("Commit message")] string message)
         {
@@ -152,6 +181,20 @@ namespace SemanticKernelPlayground.Plugins.PromptPlugins
             try
             {
                 using var repo = new Repository(_repoPath);
+
+                var branch = repo.Head;
+                var remote = repo.Network.Remotes["origin"];
+
+                if (!branch.IsTracking)
+                {
+                    var remoteBranchName = $"refs/remotes/origin/{branch.FriendlyName}";
+                    var remoteBranch = repo.Branches[remoteBranchName];
+
+                    if (remoteBranch == null)
+                        return $"Remote branch '{remoteBranchName}' not found. Try pushing first.";
+
+                    repo.Branches.Update(branch, b => b.TrackedBranch = remoteBranch.CanonicalName);
+                }
 
                 var signature = GetAuthorSignature();
                 var pullOptions = new PullOptions
