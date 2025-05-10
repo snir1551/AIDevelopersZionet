@@ -5,7 +5,7 @@
 <summary>Task 1 – GitPlugin Chatbot with Semantic Kernel</summary>
 <br />
 
-## 1. This project fulfills Task 1: Develop a chatbot with ability to generate release notes using:
+## 1. Develop a chatbot with ability to generate release notes using:
 
 - Microsoft Semantic Kernel
 - LibGit2Sharp
