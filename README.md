@@ -56,6 +56,8 @@ appsettings.Development.json
 
 ```
 
+![run commands](Task1/Images/run%20commands.png)
+
 </details>
 
 ******
