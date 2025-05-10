@@ -15,7 +15,8 @@ var apiKey = configuration["ApiKey"] ?? throw new ApplicationException("ApiKey n
 
 var builder = Kernel.CreateBuilder()
     .AddAzureOpenAIChatCompletion(modelName, endpoint, apiKey);
-builder.Plugins.AddFromType<GitPlugin>();
+var gitPlugin = new GitPlugin(configuration);
+builder.Plugins.AddFromObject(gitPlugin, "GitPlugin");
 
 var pluginPath = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Plugins", "PromptPlugins");
 builder.Plugins.AddFromPromptDirectory(pluginPath);

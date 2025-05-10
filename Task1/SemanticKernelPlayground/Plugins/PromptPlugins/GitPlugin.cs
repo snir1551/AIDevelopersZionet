@@ -1,4 +1,5 @@
 ﻿using LibGit2Sharp;
+using Microsoft.Extensions.Configuration;
 using Microsoft.SemanticKernel;
 using System;
 using System.Collections.Generic;
@@ -11,6 +12,7 @@ namespace SemanticKernelPlayground.Plugins.PromptPlugins
 {
     public class GitPlugin
     {
+        private readonly IConfiguration _config;
         private string? _repoPath;
         private const string VersionFileName = "version.txt";
         private string? _authorName;
@@ -19,7 +21,13 @@ namespace SemanticKernelPlayground.Plugins.PromptPlugins
         private string? _githubToken = "";
         private string VersionFilePath => string.IsNullOrEmpty(_repoPath) ? VersionFileName : Path.Combine(_repoPath, VersionFileName);
 
+        public GitPlugin(IConfiguration config)
+        {
+            _config = config;
 
+            _githubToken = _config["GitHub:Token"];
+            _githubUsername = _config["GitHub:Username"];
+        }
 
         [KernelFunction]
         [Description("Set the repository path for git operation")]
@@ -182,19 +190,6 @@ namespace SemanticKernelPlayground.Plugins.PromptPlugins
             {
                 using var repo = new Repository(_repoPath);
 
-                var branch = repo.Head;
-                var remote = repo.Network.Remotes["origin"];
-
-                if (!branch.IsTracking)
-                {
-                    var remoteBranchName = $"refs/remotes/origin/{branch.FriendlyName}";
-                    var remoteBranch = repo.Branches[remoteBranchName];
-
-                    if (remoteBranch == null)
-                        return $"Remote branch '{remoteBranchName}' not found. Try pushing first.";
-
-                    repo.Branches.Update(branch, b => b.TrackedBranch = remoteBranch.CanonicalName);
-                }
 
                 var signature = GetAuthorSignature();
                 var pullOptions = new PullOptions
