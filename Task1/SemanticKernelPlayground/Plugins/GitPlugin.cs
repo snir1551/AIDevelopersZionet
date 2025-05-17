@@ -6,9 +6,10 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace SemanticKernelPlayground.Plugins.PromptPlugins
+namespace SemanticKernelPlayground.Plugins
 {
     public class GitPlugin
     {
@@ -115,14 +116,14 @@ namespace SemanticKernelPlayground.Plugins.PromptPlugins
             try
             {
                 if (!File.Exists(VersionFilePath))
-                    return "No version found. Version file does not exist.";
+                    return "0.0.0"; 
 
                 var version = File.ReadAllText(VersionFilePath).Trim();
-                return $"Latest saved version: {version}";
+                return version;
             }
             catch (Exception ex)
             {
-                return $"Failed to load version: {ex.Message}";
+                return "0.0.0"; 
             }
         }
 
@@ -271,6 +272,59 @@ namespace SemanticKernelPlayground.Plugins.PromptPlugins
             _githubUsername = username;
             _githubToken = token;
             return "GitHub credentials set successfully.";
+        }
+
+
+
+        [KernelFunction]
+        [Description("Generate release notes from the last N commits and save to releaseInfo.json")]
+        public async Task<string> ReleaseNotes(Kernel kernel, int commitCount = 5)
+        {
+            if (string.IsNullOrEmpty(_repoPath))
+                return "⚠️ No repository set. Please run SetRepository first.";
+
+            var version = File.Exists(VersionFilePath)
+                ? File.ReadAllText(VersionFilePath).Trim()
+                : "0.0.0";
+
+            var commits = GetCommits(commitCount);
+
+            var promptPath = Path.Combine(AppContext.BaseDirectory, "Prompts", "ReleaseNotes", "skprompt.txt");
+            if (!File.Exists(promptPath))
+                return $"❌ Missing prompt file: {promptPath}";
+
+            var prompt = File.ReadAllText(promptPath);
+
+            var result = await kernel.InvokePromptAsync(
+                prompt,
+                new KernelArguments
+                {
+                    ["version"] = version,
+                    ["commits"] = commits
+                });
+
+            var notes = result.GetValue<string>() ?? "";
+
+            try
+            {
+                var release = new ReleaseInfo
+                {
+                    Version = version,
+                    Date = DateTime.UtcNow,
+                    Notes = notes
+                };
+
+                var json = JsonSerializer.Serialize(release, new JsonSerializerOptions { WriteIndented = true });
+
+                var outputPath = Path.Combine(Directory.GetCurrentDirectory(), "releaseInfo.json");
+                File.WriteAllText(outputPath, json);
+
+                return $"✅ Release notes saved to: {outputPath}\n\n{notes}";
+            }
+            catch (Exception ex)
+            {
+                return $"❌ Failed to save releaseInfo.json: {ex.Message}";
+            }
         }
 
         private Signature GetAuthorSignature()

@@ -3,7 +3,7 @@
   "description": "Creates release notes based on commits",
   "execution_settings": {
     "default": {
-      "max_tokens": 4096,
+      "max_tokens": 1,
       "temperature": 0.6,
       "top_p": 0.0,
       "presence_penalty": 0.0,
@@ -12,28 +12,22 @@
   },
   "input_variables": [
     {
-      "name": "commits",
-      "description": "List of commits",
-      "default": "",
-      "is_required": true
-    },
-    {
       "name": "version",
-      "description": "Version number",
+      "description": "Release version",
       "default": "",
       "is_required": true
     },
     {
-      "name": "repoPath",
-      "description": "Path of the Git repository",
+      "name": "date",
+      "description": "Optional release date",
       "default": "",
       "is_required": false
     },
     {
-      "name": "branch",
-      "description": "Current branch name",
+      "name": "commitInfo",
+      "description": "List of commits to analyze",
       "default": "",
-      "is_required": false
+      "is_required": true
     }
   ]
 }
