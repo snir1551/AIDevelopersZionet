@@ -281,7 +281,7 @@ namespace SemanticKernelPlayground.Plugins
         public async Task<string> ReleaseNotes(Kernel kernel, int commitCount = 5)
         {
             if (string.IsNullOrEmpty(_repoPath))
-                return "⚠️ No repository set. Please run SetRepository first.";
+                return "No repository set. Please run SetRepository first.";
 
             var version = File.Exists(VersionFilePath)
                 ? File.ReadAllText(VersionFilePath).Trim()
@@ -291,7 +291,7 @@ namespace SemanticKernelPlayground.Plugins
 
             var promptPath = Path.Combine(AppContext.BaseDirectory, "Prompts", "ReleaseNotes", "skprompt.txt");
             if (!File.Exists(promptPath))
-                return $"❌ Missing prompt file: {promptPath}";
+                return $"Missing prompt file: {promptPath}";
 
             var prompt = File.ReadAllText(promptPath);
 
@@ -319,11 +319,11 @@ namespace SemanticKernelPlayground.Plugins
                 var outputPath = Path.Combine(Directory.GetCurrentDirectory(), "releaseInfo.json");
                 File.WriteAllText(outputPath, json);
 
-                return $"✅ Release notes saved to: {outputPath}\n\n{notes}";
+                return $"Release notes saved to: {outputPath}\n\n{notes}";
             }
             catch (Exception ex)
             {
-                return $"❌ Failed to save releaseInfo.json: {ex.Message}";
+                return $"Failed to save releaseInfo.json: {ex.Message}";
             }
         }
 
